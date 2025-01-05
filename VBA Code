@@ -1,0 +1,175 @@
+Sub Module2()
+
+  ' Declaring the worksheet then using For Each to read all worksheets in this workbook
+    Dim ws As Worksheet
+    For Each ws In ThisWorkbook.Worksheets
+        ws.Activate
+            
+            'Setting up Headers for the info we're pulling from the dataset
+            Cells(1, 9).Value = "Ticker"
+            Cells(1, 10).Value = "Quarterly Change"
+            Cells(1, 11).Value = "Percent Change"
+            Cells(1, 12).Value = "Total Stock Volume"
+            Cells(1, 15).Value = "Ticker"
+            Cells(1, 16).Value = "Value"
+            Cells(2, 14).Value = "Greatest % Increase"
+            Cells(3, 14).Value = "Greatest % Decrease"
+            Cells(4, 14).Value = "Greatest Total Volume"
+            
+            'Declaring Datarows to count the rows of data we're given
+            Dim Datarows As Double
+            
+            'Declaring OutputRows and beginning at 2 so we don't place the data we pull into the header area (row 1)
+            Dim OutputRows As Double
+            OutputRows = 2
+            
+            'Declaring variables we'll be taking data from as doubles - due to the decimals (would be Integer if no decimal place)
+            Dim volume As Double
+            Dim opn As Double
+            Dim cld As Double
+            
+            'Setting the variables to 0
+            volume = 0
+            opn = 0
+            cld = 0
+            
+            'Declaring the last row and using the function below to use the data in all the rows given rather than setting a range
+            Dim LastRow As Double
+            LastRow = Cells(Rows.Count, 1).End(xlUp).Row
+            
+            'First loop to gather info
+            For Datarows = 2 To LastRow
+            
+                'Adding stock value before If statement
+                volume = volume + Cells(Datarows, 7).Value
+                
+                If Cells(Datarows, 1).Value <> Cells(Datarows - 1, 1).Value Then
+                    opn = Cells(Datarows, 3).Value
+                    Cells(OutputRows, 9).Value = Cells(Datarows, 1).Value
+                End If
+                
+                'Second loop
+                If Cells(Datarows, 1).Value <> Cells(Datarows + 1, 1).Value Then
+                    
+                    'We need to pull closed value
+                    cld = Cells(Datarows, 6).Value
+                    
+                    'Calculate the Quarterly change by subtracting the open value from the closed value, then placing that value into the applicable cell
+                    Cells(OutputRows, 10).Value = cld - opn
+                    Cells(OutputRows, 11).Value = (cld - opn) / opn
+                    Cells(OutputRows, 11).NumberFormat = "0.00%"
+                    Cells(OutputRows, 12).Value = volume
+
+                    OutputRows = OutputRows + 1
+                    
+                    'Before next loop, volume needs to go back to 0
+                     volume = 0
+                End If
+            Next Datarows
+            
+
+        
+        'Declaring values for QuarterlyChange and the lastrow to look through all data rather than using a range
+        Dim QuarterlyChange As Range
+        Dim LastRow2 As Long
+        
+        ' Once again declaring and using this function so we don't have to find a value for the range and plug it into the function Range or Cells
+        LastRow2 = Cells(Rows.Count, "J").End(xlUp).Row
+        
+        ' Defining the range for the "Quarterly Change" column
+        Set QuarterlyChange = Range("J2:J" & LastRow2)
+        
+        ' Looping through QuarterlyChange Column to find the values that will be green, red, or white
+        For Each cell In QuarterlyChange
+                If cell.Value < 0 Then
+                    cell.Interior.ColorIndex = 3 ' Red = bad
+                Else
+                    cell.Interior.ColorIndex = 4 ' Green = good
+                End If
+                
+                ' White background = if 0
+                If cell.Value = 0 Then
+                    cell.Interior.ColorIndex = 2
+                End If
+        Next cell
+            
+        
+        'Datarows2 will cycle through our output values
+        Dim Datarows2 As Double
+        Datarows2 = 2
+        
+        'Declaring Greatest Percentage Increased, Greatest Percentage Decreased, and Greatest TOtal Volume
+        Dim GPI As Double
+        Dim GPD As Double
+        Dim GTV As Double
+        GPI = 0
+        GPD = 5000000
+        
+        'Need to cast tick as a string for VBA to recognize it as the name of a variable
+        Dim tick As String
+        
+        
+        'Creating the first loop to find our GPI, GPD, and GTV
+        For Datarows2 = 2 To LastRow
+            If Cells(Datarows2, 11).Value = 2 Then
+                GPI = Cells(Datarows2, 11).Value
+                tick = Cells(Datarows2, 9).Value
+            End If
+            
+            If Cells(Datarows2, 11).Value > GPI Then
+                GPI = Cells(Datarows2, 11).Value
+                tick = Cells(Datarows2, 9).Value
+            End If
+        Next Datarows2
+        
+        'Placing GPI value into cells and formatting is as a percentage
+        Cells(2, 15).Value = tick
+        Cells(2, 16).Value = GPI
+        Cells(2, 16).NumberFormat = "0.00%"
+        
+        
+        'Resetting Datarows2 for our loops
+        Datarows2 = 2
+        'Creating a loop to find value of GPD
+        For Datarows2 = 2 To LastRow
+            If Cells(Datarows2, 11).Value = 2 Then
+                GPD = Cells(Datarows2, 11).Value
+                tick = Cells(Datarows2, 9).Value
+            End If
+
+            If Cells(Datarows2, 11).Value < GPD Then
+                tick = Cells(Datarows2, 9).Value
+                GPD = Cells(Datarows2, 11).Value
+            End If
+        Next Datarows2
+        
+        'Placing GPD value into cells and formatting is as a percentage
+        Cells(3, 15).Value = tick
+        Cells(3, 16).Value = GPD
+        Cells(3, 16).NumberFormat = "0.00%"
+        
+        
+        'Resetting Datarows2 for the next loop
+        Datarows2 = 2
+        'Creating a loop to find the value of GTV
+        For Datarows2 = 2 To LastRow
+        
+            If Cells(Datarows2, 12).Value = 2 Then
+                GTV = Cells(Datarows2, 12).Value
+                tick = Cells(Datarows2, 9).Value
+            End If
+            
+            If Cells(Datarows2, 12).Value > GTV Then
+                GTV = Cells(Datarows2, 12).Value
+                tick = Cells(Datarows2, 9).Value
+            End If
+    
+        Next Datarows2
+            
+       'Placing GTV value into cells
+        Cells(4, 15).Value = tick
+        Cells(4, 16).Value = GTV
+        
+    Next ws
+    
+End Sub
